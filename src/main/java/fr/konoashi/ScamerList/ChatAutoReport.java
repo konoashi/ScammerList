@@ -205,7 +205,26 @@ public class ChatAutoReport {
         String arg6 = Minecraft.getMinecraft().getSession().getPlayerID();
         event.message = new ChatComponentText(ChatFormatting.RED + "\u26a0 " + ChatFormatting.RESET).appendSibling(event.message);
         sendReportWebhook(arg1, arg2, arg3, arg4, arg5, arg6, id);
-    }
+    }  else if(event.message.getFormattedText().contains("free") && event.message.getFormattedText().contains("coins") || event.message.getFormattedText().contains("coin")) {
+            if (!References.on_skyblock()) {
+                return;
+            }
+
+            String arg2 = returnpseudo(Tab.cleanColour(event.message.getUnformattedText()));
+            if (arg2 == null) {
+                return;
+            }
+            if (arg2.equals(Minecraft.getMinecraft().getSession().getUsername())) {
+                return;
+            }
+            String arg1 = Main.getUuid(arg2);
+            String arg3 = "FREE COINS SCAM";
+            String arg4 = event.message.getUnformattedText().substring(event.message.getUnformattedText().indexOf(":") +2);
+            String arg5 = Minecraft.getMinecraft().getSession().getUsername();
+            String arg6 = Minecraft.getMinecraft().getSession().getPlayerID();
+            event.message = new ChatComponentText(ChatFormatting.RED + "\u26a0 " + ChatFormatting.RESET).appendSibling(event.message);
+            sendReportWebhook(arg1, arg2, arg3, arg4, arg5, arg6, id);
+        }
 
     }
 
