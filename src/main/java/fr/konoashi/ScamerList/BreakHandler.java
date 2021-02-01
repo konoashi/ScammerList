@@ -84,41 +84,6 @@ public class BreakHandler {
 
 
 
-    @SubscribeEvent
-    public void ItemPickupEvent(PlayerEvent.ItemPickupEvent event) {
-
-        System.out.println(event.pickedUp.getName());
-        System.out.println(event.pickedUp.getEntityItem());
-
-
-    }
-
-    @SubscribeEvent
-    public void tickEvent(final TickEvent e) {
-        Minecraft mc = Minecraft.getMinecraft();
-        if (mc.thePlayer == null || mc.theWorld == null || mc.ingameGUI == null) {
-
-            return;
-        }
-        //System.out.println(Minecraft.getMinecraft().theWorld.getScoreboard().getObjectiveInDisplaySlot(1).getCriteria());
-        BlockPos.ORIGIN.getX();
-        BlockPos.ORIGIN.getY();
-
-
-
-    }
-
-    public static void onPlayerDestroyBlock(BlockPos loc) {
-        Minecraft mc = Minecraft.getMinecraft();
-        ItemStack heldItem = Minecraft.getMinecraft().thePlayer.getHeldItem();
-        if (heldItem != null) {
-            Block block = mc.theWorld.getBlockState(loc).getBlock();
-            if ((block.equals(Blocks.wool))) {
-                System.out.println("Prismarine");
-            }
-        }
-    }
-
 
 
 
@@ -137,7 +102,7 @@ public class BreakHandler {
         return sb.toString();
     }
 
-    @SubscribeEvent
+    /*@SubscribeEvent
     public void renderDwarven(RenderGameOverlayEvent event) throws NoSuchFieldException, IllegalAccessException {
         Minecraft mc = Minecraft.getMinecraft();
         if (mc.thePlayer == null || mc.theWorld == null || mc.ingameGUI == null) {
@@ -149,7 +114,7 @@ public class BreakHandler {
         if (!References.on_skyblock()) {
             return;
         }
-    }
+    }*/
 
 
 
