@@ -205,7 +205,7 @@ public class ChatAutoReport {
         String arg6 = Minecraft.getMinecraft().getSession().getPlayerID();
         event.message = new ChatComponentText(ChatFormatting.RED + "\u26a0 " + ChatFormatting.RESET).appendSibling(event.message);
         sendReportWebhook(arg1, arg2, arg3, arg4, arg5, arg6, id);
-    }  else if(event.message.getFormattedText().contains("free") && event.message.getFormattedText().contains("coins") || event.message.getFormattedText().contains("coin")) {
+    }  else if(event.message.getFormattedText().contains("free") && event.message.getFormattedText().contains("coins")) {
             if (!References.on_skyblock()) {
                 return;
             }
