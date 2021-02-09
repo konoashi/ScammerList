@@ -14,8 +14,19 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 
 public class HttpURLConnectionExample {
+    
+       public static final String DEFAULT_USER_AGENT = "Java-Async-Http";
 
+    private final Map<String, String> headers; // HTTP request headers
 
+    private int connectionTimeout = 20000; // in milliseconds
+    private int dataRetrievalTimeout = 20000; // in milliseconds
+    private boolean followRedirects = true; // automatically follow HTTP redirects?
+
+    public HttpURLConnectionExample() {
+        headers = Collections.synchronizedMap(new LinkedHashMap<String, String>());
+        setUserAgent(DEFAULT_USER_AGENT);
+    }
 
 
 
@@ -57,6 +68,9 @@ public class HttpURLConnectionExample {
 
 
 
+    }
+    public void setUserAgent(String userAgent) {
+        headers.put("User-Agent", userAgent);
     }
 
 
