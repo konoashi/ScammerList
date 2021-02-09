@@ -38,8 +38,7 @@ public class ChatAutoReport {
             String waitforformatting = UnformattedTextMessageinit.substring(8);
             System.out.println(waitforformatting);
             String waitString = waitforformatting.substring(waitforformatting.indexOf(":"));
-            String pseudo = waitforformatting.replace(waitString, "");
-            return pseudo;
+            return waitforformatting.replace(waitString, "");
         } else {
 
             if (UnformattedTextMessage.contains("[MVP+]") || UnformattedTextMessage.contains("[VIP+]")) {
@@ -47,24 +46,21 @@ public class ChatAutoReport {
                 String waitforformatting = UnformattedTextMessageinit.substring(7);
                 System.out.println(waitforformatting);
                 String waitString = waitforformatting.substring(waitforformatting.indexOf(":"));
-                String pseudo = waitforformatting.replace(waitString, "");
-                return pseudo;
+                return waitforformatting.replace(waitString, "");
             } else {
                 if (UnformattedTextMessage.contains("[VIP]")) {
 
                     String waitforformatting = UnformattedTextMessageinit.substring(6);
                     System.out.println(waitforformatting);
                     String waitString = waitforformatting.substring(waitforformatting.indexOf(":"));
-                    String pseudo = waitforformatting.replace(waitString, "");
-                    return pseudo;
+                    return waitforformatting.replace(waitString, "");
 
                 } else {
 
                     String waitforformatting = UnformattedTextMessageinit;
                     System.out.println(waitforformatting);
                     String waitString = waitforformatting.substring(waitforformatting.indexOf(":"));
-                    String pseudo = waitforformatting.replace(waitString, "");
-                    return pseudo;
+                    return waitforformatting.replace(waitString, "");
                 }
             }
         }
@@ -205,7 +201,7 @@ public class ChatAutoReport {
         String arg6 = Minecraft.getMinecraft().getSession().getPlayerID();
         event.message = new ChatComponentText(ChatFormatting.RED + "\u26a0 " + ChatFormatting.RESET).appendSibling(event.message);
         sendReportWebhook(arg1, arg2, arg3, arg4, arg5, arg6, id);
-    }  else if(event.message.getFormattedText().contains("free") && event.message.getFormattedText().contains("coins")) {
+    }  else if(event.message.getFormattedText().contains("FREE") && event.message.getFormattedText().contains("Coins")) {
             if (!References.on_skyblock()) {
                 return;
             }
