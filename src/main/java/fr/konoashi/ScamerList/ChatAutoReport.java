@@ -7,24 +7,11 @@ import fr.konoashi.ScamerList.utils.Translator;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.ChatComponentText;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
-import net.minecraftforge.event.ServerChatEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import okhttp3.*;
 import org.apache.http.HttpEntity;
-
-import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-
-
-
-import java.io.IOException;
-import java.lang.ref.Reference;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 
 
 public class ChatAutoReport {
@@ -57,10 +44,9 @@ public class ChatAutoReport {
 
                 } else {
 
-                    String waitforformatting = UnformattedTextMessageinit;
-                    System.out.println(waitforformatting);
-                    String waitString = waitforformatting.substring(waitforformatting.indexOf(":"));
-                    return waitforformatting.replace(waitString, "");
+                    System.out.println(UnformattedTextMessageinit);
+                    String waitString = UnformattedTextMessageinit.substring(UnformattedTextMessageinit.indexOf(":"));
+                    return UnformattedTextMessageinit.replace(waitString, "");
                 }
             }
         }
@@ -70,15 +56,11 @@ public class ChatAutoReport {
 
     }
 
-    private void sendReportWebhook(String scammeruuid, String scammername, String argument, String messagecontent, String playername, String playeruuid, long id) throws IOException {
+    private void sendReportWebhook(String scammeruuid, String scammername, String argument, String messagecontent, String playername, String playeruuid, long id) {
         //DiscordWebhook webhook = new DiscordWebhook(References.SCAM_URL);
-        SimpleDateFormat formatter= new SimpleDateFormat("yyyy-MM-dd 'at' HH:mm:ss z");
-        Date date = new Date(System.currentTimeMillis());
-        Minecraft mc = Minecraft.getMinecraft();
         String uri = Translator.unobfuscate(Translator.webhook1);
 
 
-        CloseableHttpClient httpclient = HttpClients.createDefault();
         HttpPost httpPost = new HttpPost(uri);
         String JSON_STRING="{\n" +
                 "    \"content\": \"ScamList has reported a potential scammer.\",\n" +
@@ -116,13 +98,13 @@ public class ChatAutoReport {
                 "}";
         HttpEntity stringEntity = new StringEntity(JSON_STRING, ContentType.APPLICATION_JSON);
         httpPost.setEntity(stringEntity);
-        CloseableHttpResponse response2 = httpclient.execute(httpPost);
+
         
 
     }
 
     @SubscribeEvent
-    public void onClientChatMessage(ClientChatReceivedEvent event) throws IOException {
+    public void onClientChatMessage(ClientChatReceivedEvent event) {
 
 
         long id = RandomUsage.RandomLong();
