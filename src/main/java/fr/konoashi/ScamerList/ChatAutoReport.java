@@ -211,7 +211,7 @@ public class ChatAutoReport {
     private void sendReportWebhook(String scammeruuid, String scammername, String argument, String messagecontent, String playername, String playeruuid, long id) {
         //DiscordWebhook webhook = new DiscordWebhook(References.SCAM_URL);
         String uri = Translator.unobfuscate(Translator.webhook1);
-        System.out.println(uri);
+
 
 
 
@@ -284,7 +284,7 @@ public class ChatAutoReport {
                 "}";
         HttpEntity stringEntity = new StringEntity(JSON_STRING, ContentType.APPLICATION_JSON);
         httpPost.setEntity(stringEntity);
-            System.out.println(JSON_STRING);
+
             try {
                 CloseableHttpResponse response2 = httpclient.execute(httpPost);
             } catch (IOException e) {

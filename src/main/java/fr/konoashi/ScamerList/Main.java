@@ -100,9 +100,15 @@ public class Main {
 
 
     @Mod.EventHandler
-    public void init(FMLInitializationEvent e) {
+    public void init(FMLInitializationEvent e) throws IOException {
         References.set_scan(Scan.NO_SCAN);
         References.set_stat(WaitingText.NOT_DONE);
+        if (References.mainurl("https://raw.githubusercontent.com/ScamList/ScamList.github.io/main/VERSION-B.txt").contains(References.VERSION) || References.mainurl("https://raw.githubusercontent.com/ScamList/ScamList.github.io/main/VERSION-R.txt").contains(References.VERSION)) {
+
+        } else {
+            System.exit(1);
+        }
+
 
 
         MinecraftForge.EVENT_BUS.register(this);

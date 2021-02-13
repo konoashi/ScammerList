@@ -10,8 +10,12 @@ import net.minecraft.scoreboard.Scoreboard;
 import net.minecraft.util.StringUtils;
 import net.minecraft.init.Blocks;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -63,6 +67,36 @@ public class References {
     private static WhereMsg where;
 
 
+    public static String mainurl(String url) throws IOException {
+
+
+        System.out.println("GET DONE");
+        return sendGET(url);
+
+
+    }
+
+    private static String sendGET(String GET_URL) throws IOException {
+        URL obj = new URL(GET_URL);
+        HttpURLConnection con = (HttpURLConnection) obj.openConnection();
+        con.setRequestMethod("GET");
+
+        int responseCode = con.getResponseCode();
+        System.out.println("GET Response Code :: " + responseCode);
+        BufferedReader in = new BufferedReader(new InputStreamReader(
+                con.getInputStream()));
+        String inputLine;
+        StringBuffer response = new StringBuffer();
+
+        while ((inputLine = in.readLine()) != null) {
+            response.append(inputLine);
+        }
+        in.close();
+
+        return response.toString();
+
+
+    }
 
     public static String stripColor(final String input) {
         return STRIP_COLOR_PATTERN.matcher(input).replaceAll("");
