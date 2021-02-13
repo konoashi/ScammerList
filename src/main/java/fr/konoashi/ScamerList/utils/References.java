@@ -1,8 +1,6 @@
 package fr.konoashi.ScamerList.utils;
 
-import fr.konoashi.ScamerList.enums.OnTrade;
-import fr.konoashi.ScamerList.enums.Scammer;
-import fr.konoashi.ScamerList.enums.Scan;
+import fr.konoashi.ScamerList.enums.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.Container;
@@ -27,7 +25,7 @@ public class References {
     private static final Pattern STRIP_COLOR_PATTERN = Pattern.compile("(?i)§[0-9A-FK-OR]");
     public static final String MODID = "scammerList";
     public static final String NAME = "ScammerList";
-    public static final String VERSION = "1.0.4 PRE2";
+    public static final String VERSION = "1.0.4 PRE3";
 
     public static final String ScammListBrand = "[ScammerList] ";
     public static final String msg1 = "Request data from the database...";
@@ -50,6 +48,9 @@ public class References {
     public static String GUIMSG7 = " isn't recognize as minecraft player";
     public static String GUIMSG8 = "Stay safe and screen, you can report on the discord";
 
+    public static String GUIMSG9 = " Please wait, the game is currently searching in the database the ";
+    public static String GUIMSG10 = "Stay safe and screen, you can report on the discord";
+
 
 
 
@@ -58,6 +59,9 @@ public class References {
     private static OnTrade ontrade;
     private static Scan scan;
     private static Scammer scammer;
+    private static WaitingText waitingText;
+    private static WhereMsg where;
+
 
 
     public static String stripColor(final String input) {
@@ -165,6 +169,23 @@ public class References {
 
     }
 
+    public static WaitingText get_stat() {
+        return References.waitingText;
+    }
+
+    public static void set_stat(final WaitingText waitingText) {
+        References.waitingText = waitingText;
+
+    }
+
+    public static WhereMsg get_where() {
+        return References.where;
+    }
+
+    public static void set_where(final WhereMsg where) {
+        References.where = where;
+
+    }
 
 
 

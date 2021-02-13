@@ -59,7 +59,7 @@ plugins {
     id "net.minecraftforge.gradle.forge" version "2.0.2"
 }
 */
-version = "1.0.4 PRE2"
+version = "1.0.4 PRE3"
 group= "fr.konoashi.ScamerList" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = "ScammerList"
 
@@ -102,7 +102,12 @@ dependencies {
 
 
 
+    compile 'org.asynchttpclient:async-http-client-bom:2.12.2'
 
+
+
+
+    compile group: 'org.asynchttpclient', name: 'async-http-client', version: '2.12.2'
 
 
     compile "com.squareup.okhttp3:okhttp:4.9.0"

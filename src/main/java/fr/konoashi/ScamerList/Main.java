@@ -9,9 +9,13 @@ import fr.konoashi.ScamerList.config.Location;
 import fr.konoashi.ScamerList.enums.OnTrade;
 import fr.konoashi.ScamerList.enums.Scammer;
 import fr.konoashi.ScamerList.enums.Scan;
+import fr.konoashi.ScamerList.enums.WaitingText;
 import fr.konoashi.ScamerList.utils.References;
 
 import fr.konoashi.ScamerList.utils.Translator;
+import net.minecraft.block.Block;
+import net.minecraft.block.BlockBeacon;
+import net.minecraft.block.BlockStainedGlass;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.*;
 import net.minecraft.client.gui.inventory.GuiChest;
@@ -22,6 +26,8 @@ import net.minecraft.event.ClickEvent;
 import net.minecraft.event.HoverEvent;
 import net.minecraft.inventory.Container;
 import net.minecraft.inventory.IInventory;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.gui.PlayerListComponent;
 import net.minecraft.util.ChatComponentText;
@@ -39,6 +45,8 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 
 import net.minecraftforge.fml.common.gameevent.TickEvent;
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
 import org.apache.commons.io.IOUtils;
 
 import com.google.gson.JsonObject;
@@ -65,6 +73,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 
 @Mod(modid = References.MODID, name = References.NAME , version = References.VERSION)
@@ -92,6 +101,8 @@ public class Main {
 
     @Mod.EventHandler
     public void init(FMLInitializationEvent e) {
+        References.set_scan(Scan.NO_SCAN);
+        References.set_stat(WaitingText.NOT_DONE);
 
 
         MinecraftForge.EVENT_BUS.register(this);
@@ -131,6 +142,7 @@ public class Main {
 
 
 
+         new Thread(() -> {
          CloseableHttpClient httpclient = HttpClients.createDefault();
          HttpPost httpPost = new HttpPost(uri);
          String JSON_STRING="\n" +
@@ -160,7 +172,12 @@ public class Main {
                  "}";
          HttpEntity stringEntity = new StringEntity(JSON_STRING, ContentType.APPLICATION_JSON);
          httpPost.setEntity(stringEntity);
-         CloseableHttpResponse response2 = httpclient.execute(httpPost);
+             try {
+                 CloseableHttpResponse response2 = httpclient.execute(httpPost);
+             } catch (IOException e) {
+                 e.printStackTrace();
+             }
+         }).start();
     }
 
 
@@ -180,6 +197,7 @@ public class Main {
 
         }
         return "error";
+
     }
 
 
@@ -200,6 +218,7 @@ public class Main {
         gui.displayTitle(null, subtitle, 20, 100, 20);
         assert Minecraft.getMinecraft().thePlayer != null;
         Minecraft.getMinecraft().thePlayer.closeScreen();
+        References.set_scan(Scan.NO_SCAN);
 
 
         //Minecraft.getMinecraft().thePlayer.displayGUIChest();
@@ -211,6 +230,7 @@ public class Main {
 
 
     @SubscribeEvent
+    @SideOnly(Side.CLIENT)
     public void onGuiOpen(GuiOpenEvent e)  {
         //Minecraft.getMinecraft().ingameGUI.getTabList().func_181030_a();
         //System.out.println(Minecraft.getMinecraft().ingameGUI.getTabList());
@@ -226,6 +246,7 @@ public class Main {
                 Minecraft mc = Minecraft.getMinecraft();
                 IInventory chestInventory;
                 chestInventory = ((GuiChest) e.gui).lowerChestInventory;
+                int size = chestInventory.getSizeInventory();
 
                 /*GuiPlayerTabOverlay tabList = mc.ingameGUI.getTabList();
                 List<String> header = null;
@@ -236,11 +257,28 @@ public class Main {
                 Tab.execute();
 
 
+                if (References.get_scammer() == Scammer.NOT_QUERYED && References.get_ontrade() == OnTrade.ON_TRADE) {
+                    ItemStack is = new ItemStack(Item.getByNameOrId("Minecraft:BlockStainedGlass"));
+
+                    int i;
+                    for (i = 0; i < size; i++)
+                        if (chestInventory.getStackInSlot(i) == null)
+                        {
+                            chestInventory.setInventorySlotContents(i, is);
+                            break;
+                        }
+                    if (i == size)
+                    {
+// could not find empty slot
+                    }
+                }
+
 
                 if (chestInventory.hasCustomName()) {
                     if (chestInventory.getDisplayName().getUnformattedText().contains("You ")) {
                         References.set_ontrade(OnTrade.ON_TRADE);
-                        References.set_scan(Scan.NO_SCAN);
+
+
                         } else {
                         References.set_ontrade(OnTrade.OFF_TRADE);
                     }
@@ -252,9 +290,21 @@ public class Main {
         }
 
 
+    @SubscribeEvent
+    public void onGuiClose(GuiOpenEvent event) {
+        Minecraft mc = Minecraft.getMinecraft();
+        if (mc.thePlayer == null || mc.theWorld == null || mc.ingameGUI == null) {
+
+            return;
+        }
+        if(event.gui == null) {
+            References.set_scan(Scan.NO_SCAN);
+        }
+    }
+
 
     @SubscribeEvent
-    public void tick(final TickEvent.ClientTickEvent e) throws IOException {
+    public void tick(final TickEvent.ClientTickEvent e) throws Exception {
         Minecraft mc = Minecraft.getMinecraft();
         if (!References.on_skyblock()) {
 
@@ -285,35 +335,44 @@ public class Main {
 
 
         if (References.get_scan() == Scan.NO_SCAN) {
+
             String uuidToScan = getUuid(username);
             String line = EnumChatFormatting.AQUA + "____________________";
             String waitingMessage2 = EnumChatFormatting.YELLOW + References.ScammListBrand + References.msg2 + EnumChatFormatting.GOLD + username;
             String waitingMessage1 = EnumChatFormatting.YELLOW + References.ScammListBrand + References.msg1;
-            mc.thePlayer.addChatMessage(new ChatComponentText(line));
-            mc.thePlayer.addChatMessage(new ChatComponentText(""));
-            mc.thePlayer.addChatMessage(new ChatComponentText(waitingMessage1));
-            mc.thePlayer.addChatMessage(new ChatComponentText(""));
-            mc.thePlayer.addChatMessage(new ChatComponentText(waitingMessage2));
-            mc.thePlayer.addChatMessage(new ChatComponentText(""));
-            String verify = HttpURLConnectionExample.main("https://scamlist.github.io/Scam.json");
-            String verifySbz = HttpURLConnectionExample.main("https://raw.githubusercontent.com/skyblockz/pricecheckbot/master/scammer.json");
-            References.set_scan(Scan.ALR_SCAN);
-            if (verify.contains(uuidToScan) || verifySbz.contains(uuidToScan)) {
-                References.set_scammer(Scammer.IS_SCAMMER);
+
+            if (References.get_stat() == WaitingText.NOT_DONE) {
+
+                mc.thePlayer.addChatMessage(new ChatComponentText(waitingMessage1));
+                mc.thePlayer.addChatMessage(new ChatComponentText(waitingMessage2));
+                HttpURLConnectionExample.main("https://raw.githubusercontent.com/skyblockz/pricecheckbot/master/scammer.json", "https://scamlist.github.io/Scam.json", uuidToScan);
+
+                References.set_stat(WaitingText.DONE);
+            }
+
+            if (References.get_scammer() == Scammer.NOT_QUERYED) {
+                return;
+            }
+
+
+            System.out.println(References.get_scammer());
+
+            if (References.get_scammer() == Scammer.IS_SCAMMER) {
                 Main.this.closeTrade(username);
                 sendScammerAlertWebhook(uuidToScan, username);
+                References.set_scan(Scan.ALR_SCAN);
+                References.set_stat(WaitingText.NOT_DONE);
             }else {
-                if (uuidToScan.equals("invalid name")) {
-                    References.set_scammer(Scammer.NO_RECOGNIZED);
+                if (References.get_scammer() == Scammer.NO_RECOGNIZED) {
 
                     String playerUnknowName = EnumChatFormatting.GOLD + References.ScammListBrand + username + " have a non-recognized minecraft name, maybe is a MVP++";
                     mc.thePlayer.addChatMessage(new ChatComponentText(playerUnknowName));
                     mc.thePlayer.addChatMessage(new ChatComponentText(""));
-                    mc.thePlayer.addChatMessage(new ChatComponentText(line));
+                    References.set_scan(Scan.ALR_SCAN);
+                    References.set_stat(WaitingText.NOT_DONE);
                 } else {
 
-                    if (Main.LOCAL_SCAMMER_LIST.contains(uuidToScan)) {
-                        References.set_scammer(Scammer.LOCAL_SCAMMER);
+                    if (References.get_scammer() == Scammer.LOCAL_SCAMMER) {
 
                         Minecraft.getMinecraft().thePlayer.closeScreen();
                         String alertScam = EnumChatFormatting.DARK_RED + References.ScammListBrand + username + " is a local scammer";
@@ -321,24 +380,30 @@ public class Main {
                         String title = EnumChatFormatting.DARK_RED + "WARNING";
                         Minecraft.getMinecraft().thePlayer.addChatMessage(new ChatComponentText(alertScam));
                         //mc.thePlayer.addChatMessage(new ChatComponentText(ignore));
-                        Minecraft.getMinecraft().thePlayer.addChatMessage(new ChatComponentText(line));
                         Minecraft.getMinecraft().thePlayer.playSound("mob.wither.spawn", 0.5F, 1);
                         GuiIngame gui = Minecraft.getMinecraft().ingameGUI;
                         gui.displayTitle(title, null, 20, 100, 20);
                         gui.displayTitle(null, subtitle, 20, 100, 20);
                         assert Minecraft.getMinecraft().thePlayer != null;
+                        References.set_scan(Scan.ALR_SCAN);
+                        References.set_stat(WaitingText.NOT_DONE);
 
 
                     } else {
-                        References.set_scammer(Scammer.NO_SCAMMER);
-                        ChatComponentText playerSafe = new ChatComponentText(EnumChatFormatting.GREEN + References.ScammListBrand + username + References.msg3 + EnumChatFormatting.DARK_BLUE + "https://discord.gg/5mrpAR3q5D"); // Fill the string with what you want to show up in chat
-                        ChatStyle style = new ChatStyle().setChatClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://discord.gg/5mrpAR3q5D")); // Fill the string with your URL
-                        HoverEvent hoverEvent = new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ChatComponentText("https://discord.gg/5mrpAR3q5D")); // Fill the string with your URL
-                        playerSafe.setChatStyle(style.setChatHoverEvent(hoverEvent));
-                        mc.thePlayer.addChatMessage(playerSafe);
-                        mc.thePlayer.addChatMessage(new ChatComponentText(""));
-                        mc.thePlayer.addChatMessage(new ChatComponentText(line));
+                        if (References.get_scammer() == Scammer.NO_SCAMMER) {
+                            ChatComponentText playerSafe = new ChatComponentText(EnumChatFormatting.GREEN + References.ScammListBrand + username + References.msg3 + EnumChatFormatting.DARK_BLUE + "https://discord.gg/5mrpAR3q5D"); // Fill the string with what you want to show up in chat
+                            ChatStyle style = new ChatStyle().setChatClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://discord.gg/5mrpAR3q5D")); // Fill the string with your URL
+                            HoverEvent hoverEvent = new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ChatComponentText("https://discord.gg/5mrpAR3q5D")); // Fill the string with your URL
+                            playerSafe.setChatStyle(style.setChatHoverEvent(hoverEvent));
+                            mc.thePlayer.addChatMessage(playerSafe);
+                            mc.thePlayer.addChatMessage(new ChatComponentText(""));
+                            References.set_scan(Scan.ALR_SCAN);
+                            References.set_stat(WaitingText.NOT_DONE);
+                        }
+
                     }
+
+
 
                 }
 
@@ -370,7 +435,11 @@ public class Main {
         String username = References.get_trading_partner_username(container);
 
         if (References.get_scammer() == Scammer.NOT_QUERYED) {
-            return;
+            String text1 = "\u274c " +  References.GUIMSG9 + username + " player";
+            String text2 = References.GUIMSG10;
+            int color1 = 16777045;
+            int color2 = 16755200;
+            drawing(fr, screen_width, screen_height, text1, text2, color1, color2);
         }
 
         if (References.get_scammer() == Scammer.NO_SCAMMER) {
@@ -386,7 +455,6 @@ public class Main {
             int color1 = 11141120;
             int color2 = 11141120;
             drawing(fr, screen_width, screen_height, text1, text2, color1, color2);
-            References.set_scammer(Scammer.NOT_QUERYED);
         } else if (References.get_scammer() == Scammer.LOCAL_SCAMMER) {
             String text1 = "\u274c " + username + References.GUIMSG5;
             String text2 = References.GUIMSG6;
