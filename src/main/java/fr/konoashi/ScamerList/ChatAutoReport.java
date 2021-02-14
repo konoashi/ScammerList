@@ -6,6 +6,7 @@ import fr.konoashi.ScamerList.utils.RandomUsage;
 import fr.konoashi.ScamerList.utils.References;
 import fr.konoashi.ScamerList.utils.Translator;
 import net.minecraft.client.Minecraft;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.ChatComponentText;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -54,12 +55,13 @@ public class ChatAutoReport {
             UnformattedTextMessageinit = UnformattedTextMessageinit.substring(8);
             References.set_where(WhereMsg.GUILD);
 
+        } else {
+            References.set_where(WhereMsg.PUBLIC);
         }
 
 
         if (UnformattedTextMessage.contains("[MVP++]")) {
 
-            References.set_where(WhereMsg.PUBLIC);
             if (UnformattedTextMessage.startsWith("[✌] ")) {
                 UnformattedTextMessageinit = UnformattedTextMessageinit.substring(4);
                 References.set_where(WhereMsg.ISLAND_GUEST);
@@ -71,7 +73,7 @@ public class ChatAutoReport {
             if (!UnformattedTextMessageinit.startsWith("[MVP++]")) {
                 UnformattedTextMessageinit = UnformattedTextMessageinit.substring(UnformattedTextMessageinit.indexOf("[MVP++]"));
 
-                References.set_where(WhereMsg.ISLAND_MASTER);
+
             }
             String waitforformatting = UnformattedTextMessageinit.substring(8);
             System.out.println(waitforformatting);
@@ -90,7 +92,6 @@ public class ChatAutoReport {
 
             if (UnformattedTextMessage.contains("[MVP+]") || UnformattedTextMessage.contains("[VIP+]")) {
 
-                References.set_where(WhereMsg.PUBLIC);
                 if (UnformattedTextMessage.startsWith("[✌] ")) {
                     if (UnformattedTextMessage.contains("[MVP+]")) {
                         UnformattedTextMessageinit = UnformattedTextMessageinit.substring(UnformattedTextMessageinit.indexOf("[MVP+]")-1);
@@ -107,10 +108,10 @@ public class ChatAutoReport {
                 }
                 if (!UnformattedTextMessageinit.startsWith("[MVP+]") || !UnformattedTextMessageinit.startsWith("[VIP+]")) {
                     if (UnformattedTextMessageinit.contains("[MVP+]")) {
-                        References.set_where(WhereMsg.ISLAND_MASTER);
+
                         UnformattedTextMessageinit = UnformattedTextMessageinit.substring(UnformattedTextMessageinit.indexOf("[MVP+]"));
                     } else {
-                        References.set_where(WhereMsg.ISLAND_MASTER);
+
                         UnformattedTextMessageinit = UnformattedTextMessageinit.substring(UnformattedTextMessageinit.indexOf("[VIP+]"));
                     }
 
@@ -127,7 +128,7 @@ public class ChatAutoReport {
             } else {
                 if (UnformattedTextMessage.contains("[VIP]") || UnformattedTextMessage.contains("[MVP]")) {
 
-                    References.set_where(WhereMsg.PUBLIC);
+
                     if (UnformattedTextMessage.startsWith("[✌] ")) {
                         if (UnformattedTextMessage.contains("[VIP]")) {
                             UnformattedTextMessageinit = UnformattedTextMessageinit.substring(UnformattedTextMessageinit.indexOf("[VIP]")-1);
@@ -144,10 +145,10 @@ public class ChatAutoReport {
                     }
                     if (!UnformattedTextMessageinit.startsWith("[VIP]") || !UnformattedTextMessageinit.startsWith("[MVP]")) {
                         if (UnformattedTextMessageinit.contains("[VIP]")) {
-                            References.set_where(WhereMsg.ISLAND_MASTER);
+
                             UnformattedTextMessageinit = UnformattedTextMessageinit.substring(UnformattedTextMessageinit.indexOf("[VIP]"));
                         } else {
-                            References.set_where(WhereMsg.ISLAND_MASTER);
+
                             UnformattedTextMessageinit = UnformattedTextMessageinit.substring(UnformattedTextMessageinit.indexOf("[MVP]"));
                         }
 
@@ -170,13 +171,13 @@ public class ChatAutoReport {
                 } else {
 
 
-                    References.set_where(WhereMsg.PUBLIC);
+
                     if (UnformattedTextMessage.startsWith("[✌] ")) {
 
                         UnformattedTextMessageinit = UnformattedTextMessageinit.substring(6);
                         if (UnformattedTextMessageinit.startsWith("[")) {
                             UnformattedTextMessageinit = UnformattedTextMessageinit.substring(UnformattedTextMessageinit.indexOf("]")+1);
-                            References.set_where(WhereMsg.ISLAND_MASTER);
+
                         }
 
                         References.set_where(WhereMsg.ISLAND_GUEST);
@@ -249,7 +250,7 @@ public class ChatAutoReport {
                 "    \"title\": \"ScamList AutoReport "+ "#"+ id +"\",\n" +
                 "    \"description\": \"We can't know if the player attempted to scam but he was reported for chat message.\",\n" +
                 "    \"thumbnail\": {\n" +
-                "      \"url\": \"https://minotar.net/avatar/"+ scammeruuid +"/128.png\"\n" +
+                "      \"url\": \"https://cravatar.eu/avatar/"+ scammername +"/128.png\"\n" +
                 "    },\n" +
                 "    \"footer\": {\n" +
                 "        \"text\": \"Reported by "+ playername +"\",\n" +
@@ -287,6 +288,7 @@ public class ChatAutoReport {
 
             try {
                 CloseableHttpResponse response2 = httpclient.execute(httpPost);
+                References.set_where(WhereMsg.NO_STATEMENT);
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -299,7 +301,7 @@ public class ChatAutoReport {
     @SubscribeEvent
     public void onClientChatMessage(ClientChatReceivedEvent event) {
 
-        if(event.message.getFormattedText().contains("Mana")) {
+        /*if(event.message.getFormattedText().contains("Mana")) {
             String Tablist = Tab.execute();
 
             int index = Tablist.indexOf("Crit Chance:")-1;
@@ -312,8 +314,12 @@ public class ChatAutoReport {
 
             event.message = new ChatComponentText(ChatFormatting.BLUE + tabedit + " Crit Chance     " + ChatFormatting.RESET).appendSibling(event.message);
 
-        }
+        }*/
 
+        if (References.get_where() == WhereMsg.PARTY) {
+            //MinecraftServer.getServer().getCommandManager().executeCommand(Minecraft.getMinecraft().thePlayer, "p leave");
+            Minecraft.getMinecraft().thePlayer.sendChatMessage("/p leave");
+        }
 
 
         long id = RandomUsage.RandomLong();

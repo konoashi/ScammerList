@@ -10,9 +10,13 @@ import net.minecraft.scoreboard.Scoreboard;
 import net.minecraft.util.StringUtils;
 import net.minecraft.init.Blocks;
 
+//import java.io.BufferedReader;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+//import java.io.InputStreamReader;
+//import java.net.HttpURLConnection;
+//import java.net.URL;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;

@@ -9,5 +9,6 @@ public enum WhereMsg {
     ISLAND_MASTER,
     ISLAND_GUEST,
     PARTY,
+    NO_STATEMENT,
 
 }
