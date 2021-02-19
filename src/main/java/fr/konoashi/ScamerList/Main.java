@@ -3,6 +3,7 @@ package fr.konoashi.ScamerList;
 import com.google.gson.JsonElement;
 import fr.konoashi.ScamerList.commands.CustomCommand;
 import fr.konoashi.ScamerList.commands.DirectQueryCommand;
+import fr.konoashi.ScamerList.commands.MainGuiCommand;
 import fr.konoashi.ScamerList.commands.TestSidebarScoresCommand;
 import fr.konoashi.ScamerList.config.LocalScammerList;
 import fr.konoashi.ScamerList.config.Location;
@@ -85,6 +86,7 @@ public class Main {
     private static final String LOCATION_FILE = "config/Location.config";
     public static LocalScammerList LOCAL_SCAMMER_LIST;
     public static Location LOCATION;
+    public static String guiToOpen = null;
 
 
 
@@ -111,18 +113,36 @@ public class Main {
 
 
 
+
         MinecraftForge.EVENT_BUS.register(this);
         MinecraftForge.EVENT_BUS.register(new ChatAutoReport());
         MinecraftForge.EVENT_BUS.register(new BreakHandler());
         MinecraftForge.EVENT_BUS.register(new References());
+        MinecraftForge.EVENT_BUS.register(new TagScam());
+
 
         Main.LOCAL_SCAMMER_LIST = new LocalScammerList(Main.LOCAL_SCAMMER_LIST_FILE);
         Main.LOCATION = new Location(Main.LOCATION_FILE);
 
             ClientCommandHandler.instance.registerCommand((ICommand)new DirectQueryCommand());
             ClientCommandHandler.instance.registerCommand((ICommand)new TestSidebarScoresCommand());
+            ClientCommandHandler.instance.registerCommand(new MainGuiCommand());
+            ClientCommandHandler.instance.registerCommand(new ToggleCommand());
 
 
+    }
+
+    // Delay GUI by 1 tick
+    @SubscribeEvent
+    public void onRenderTick(TickEvent.RenderTickEvent event) {
+        if (guiToOpen != null) {
+            Minecraft mc = Minecraft.getMinecraft();
+            if (guiToOpen.startsWith("slmGui")) {
+                int page = Character.getNumericValue(guiToOpen.charAt(guiToOpen.length() - 1));
+                mc.displayGuiScreen(new fr.konoashi.ScamerList.MainGui(page));
+            }
+            guiToOpen = null;
+        }
     }
 
 
@@ -152,6 +172,7 @@ public class Main {
          new Thread(() -> {
          CloseableHttpClient httpclient = HttpClients.createDefault();
          HttpPost httpPost = new HttpPost(uri);
+         System.out.println(uri);
          String JSON_STRING="\n" +
                  "{\n" +
                  "    \"content\": \"ScamList has stopped a someone to trade with a scammer.\",\n" +
@@ -210,6 +231,7 @@ public class Main {
 
     public void closeTrade(String userToScan) {
 
+
         String line = EnumChatFormatting.AQUA + "____________________";
         String alertScam = EnumChatFormatting.DARK_RED + References.ScammListBrand + userToScan + References.msg4;
 
@@ -219,6 +241,9 @@ public class Main {
         //mc.thePlayer.addChatMessage(new ChatComponentText(ignore));
         Minecraft.getMinecraft().thePlayer.addChatMessage(new ChatComponentText(line));
         Minecraft.getMinecraft().thePlayer.playSound("mob.wither.spawn", 0.5F, 1);
+        if (!ToggleCommand.discordRpcToggled) {
+            return;
+        }
 
         GuiIngame gui = Minecraft.getMinecraft().ingameGUI;
         gui.displayTitle(title, null, 20, 100, 20);
@@ -352,8 +377,9 @@ public class Main {
 
                 mc.thePlayer.addChatMessage(new ChatComponentText(waitingMessage1));
                 mc.thePlayer.addChatMessage(new ChatComponentText(waitingMessage2));
-                HttpURLConnectionExample.main("https://raw.githubusercontent.com/skyblockz/pricecheckbot/master/scammer.json", "https://scamlist.github.io/Scam.json", uuidToScan);
+                //HttpURLConnectionExample.main("https://raw.githubusercontent.com/skyblockz/pricecheckbot/master/scammer.json", "https://scamlist.github.io/Scam.json", uuidToScan);
 
+                References.Analyst(uuidToScan);
                 References.set_stat(WaitingText.DONE);
             }
 
@@ -366,7 +392,9 @@ public class Main {
 
             if (References.get_scammer() == Scammer.IS_SCAMMER) {
                 Main.this.closeTrade(username);
-                sendScammerAlertWebhook(uuidToScan, username);
+                if (ToggleCommand.creeperToggled) {
+                    sendScammerAlertWebhook(uuidToScan, username);
+                }
                 References.set_scan(Scan.ALR_SCAN);
                 References.set_stat(WaitingText.NOT_DONE);
             }else {
@@ -427,6 +455,9 @@ public class Main {
 
     @SubscribeEvent
     public void render(final GuiScreenEvent.BackgroundDrawnEvent e) {
+        if (!ToggleCommand.amongUsSolverToggled) {
+            return;
+        }
         if (!References.on_skyblock()) {
             return;
         }

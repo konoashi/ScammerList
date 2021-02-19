@@ -1,6 +1,7 @@
 package fr.konoashi.ScamerList;
 
 import com.mojang.realmsclient.gui.ChatFormatting;
+import fr.konoashi.ScamerList.enums.Scammer;
 import fr.konoashi.ScamerList.enums.WhereMsg;
 import fr.konoashi.ScamerList.utils.RandomUsage;
 import fr.konoashi.ScamerList.utils.References;
@@ -8,6 +9,7 @@ import fr.konoashi.ScamerList.utils.Translator;
 import net.minecraft.client.Minecraft;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.ChatComponentText;
+import net.minecraft.util.EnumChatFormatting;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.apache.http.HttpEntity;
@@ -18,10 +20,20 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.lang.ref.Reference;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.ProtocolException;
+import java.net.URL;
 
 
 public class ChatAutoReport {
+
+    public static StringBuffer response;
+    public static StringBuffer response2;
 
 
 
@@ -283,6 +295,10 @@ public class ChatAutoReport {
                 "        \n" +
                 "  }]\n" +
                 "}";
+        if (place.equals("ERROR")) {
+            Thread.currentThread().interrupt();
+            References.set_where(WhereMsg.NO_STATEMENT);
+        }
         HttpEntity stringEntity = new StringEntity(JSON_STRING, ContentType.APPLICATION_JSON);
         httpPost.setEntity(stringEntity);
 
@@ -297,6 +313,8 @@ public class ChatAutoReport {
         
 
     }
+
+
 
     @SubscribeEvent
     public void onClientChatMessage(ClientChatReceivedEvent event) {
@@ -316,9 +334,194 @@ public class ChatAutoReport {
 
         }*/
 
+        if (event.message.getFormattedText().toLowerCase().contains("you are playing on profile")) {
+
+            String url = "https://raw.githubusercontent.com/skyblockz/pricecheckbot/master/scammer.json";
+            String url2 = "https://scamlist.github.io/Scam.json";
+            new Thread(() -> {
+                References.set_scammer(Scammer.NOT_QUERYED);
+
+
+                URL obj = null;
+
+                try {
+                    obj = new URL(url);
+                } catch (MalformedURLException e) {
+                    e.printStackTrace();
+                }
+                HttpURLConnection con = null;
+                try {
+                    assert obj != null;
+                    con = (HttpURLConnection) obj.openConnection();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    assert con != null;
+                    con.setRequestMethod("GET");
+                } catch (ProtocolException e) {
+                    e.printStackTrace();
+                }
+
+                int responseCode = 0;
+                try {
+                    responseCode = con.getResponseCode();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                System.out.println("GET Response Code :: " + responseCode);
+                BufferedReader in = null;
+                try {
+                    in = new BufferedReader(new InputStreamReader(
+                            con.getInputStream()));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                String inputLine = null;
+                StringBuffer response = new StringBuffer();
+
+                while (true) {
+                    try {
+                        assert in != null;
+                        if ((inputLine = in.readLine()) == null) break;
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    response.append(inputLine);
+                    ChatAutoReport.response = response;
+
+                }
+                try {
+                    in.close();
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+
+                URL obj2 = null;
+                try {
+                    obj2 = new URL(url2);
+                } catch (MalformedURLException e) {
+                    e.printStackTrace();
+                }
+                HttpURLConnection con2 = null;
+                try {
+                    assert obj2 != null;
+                    con2 = (HttpURLConnection) obj2.openConnection();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    assert con2 != null;
+                    con2.setRequestMethod("GET");
+                } catch (ProtocolException e) {
+                    e.printStackTrace();
+                }
+
+                int responseCode2 = 0;
+                try {
+                    responseCode2 = con2.getResponseCode();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                System.out.println("GET Response Code :: " + responseCode2);
+                BufferedReader in2 = null;
+                try {
+                    in2 = new BufferedReader(new InputStreamReader(
+                            con2.getInputStream()));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                String inputLine2 = null;
+                StringBuffer response2 = new StringBuffer();
+
+                while (true) {
+                    try {
+                        assert in2 != null;
+                        if ((inputLine2 = in2.readLine()) == null) break;
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    response2.append(inputLine2);
+                    ChatAutoReport.response2 = response2;
+
+                }
+                try {
+                    in2.close();
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+
+
+
+            }).start();
+        }
+
+
+
         if (References.get_where() == WhereMsg.PARTY) {
+            if (!ToggleCommand.joinInformationToggled) {
+                return;
+            }
             //MinecraftServer.getServer().getCommandManager().executeCommand(Minecraft.getMinecraft().thePlayer, "p leave");
             Minecraft.getMinecraft().thePlayer.sendChatMessage("/p leave");
+            References.set_where(WhereMsg.NO_STATEMENT);
+        }
+        if (event.message.getFormattedText().toLowerCase().contains("has invited you to join their party!")) {
+            if (!ToggleCommand.threeManToggled) {
+                return;
+            }
+            String msg = event.message.getUnformattedText();
+            msg = msg.substring(30, msg.indexOf("has")-1);
+            if (msg.contains("-----------------------------")) {
+                msg.replaceAll("-", "");
+            }
+            String User = event.message.getFormattedText();
+            if (msg.startsWith("[")) {
+                msg = msg.substring(msg.indexOf("]")+2);
+
+            }
+            if (msg.contains(" ")) {
+                msg = msg.replaceAll(" ", "");
+            }
+            User = User.substring(User.indexOf("[")-3, User.indexOf("has")-1);
+            if (User.startsWith(" ")) {
+                User = User.replace(" ", "");
+            }
+            if (ChatAutoReport.response == null || ChatAutoReport.response2 == null) {
+                return;
+            }
+
+            String uuid = Main.getUuid(msg);
+
+
+
+
+            if (ChatAutoReport.response.toString().contains(uuid) || ChatAutoReport.response2.toString().contains(uuid)) {
+                String alertScam = EnumChatFormatting.DARK_RED + References.ScammListBrand + "The party of " +  User + EnumChatFormatting.DARK_RED +" isn't safe, stay in sure and take care";
+                Minecraft.getMinecraft().thePlayer.addChatMessage(new ChatComponentText(alertScam));
+
+            } else if (uuid.equals("invalid name")) {
+                String alertScam = EnumChatFormatting.GOLD + References.ScammListBrand + "The party of " +  User + EnumChatFormatting.GOLD +" can't be resolved because this account doesn't exist";
+                Minecraft.getMinecraft().thePlayer.addChatMessage(new ChatComponentText(alertScam));
+
+            } else if (Main.LOCAL_SCAMMER_LIST.contains(uuid)) {
+
+                String alertScam = EnumChatFormatting.RED + References.ScammListBrand + "The party of " +  User + EnumChatFormatting.RED +" isn't safe, stay in sure and take care (local)";
+                Minecraft.getMinecraft().thePlayer.addChatMessage(new ChatComponentText(alertScam));
+
+
+            } else {
+                String alertScam = EnumChatFormatting.GREEN + References.ScammListBrand + "The party of " +  User + EnumChatFormatting.GREEN +" isn't recognized as dangerous";
+                Minecraft.getMinecraft().thePlayer.addChatMessage(new ChatComponentText(alertScam));
+
+            }
+        }
+        if (!ToggleCommand.blazeToggled) {
+            return;
         }
 
 
@@ -341,6 +544,7 @@ public class ChatAutoReport {
             String arg5 = Minecraft.getMinecraft().getSession().getUsername();
             String arg6 = Minecraft.getMinecraft().getSession().getPlayerID();
             event.message = new ChatComponentText(ChatFormatting.RED + "\u26a0 " + ChatFormatting.RESET).appendSibling(event.message);
+
             sendReportWebhook(arg1, arg2, arg3, arg4, arg5, arg6, id);
             Minecraft.getMinecraft().thePlayer.playSound("mob.wither.spawn", 0.5F, 1);
 
@@ -425,7 +629,25 @@ public class ChatAutoReport {
             sendReportWebhook(arg1, arg2, arg3, arg4, arg5, arg6, id);
             Minecraft.getMinecraft().thePlayer.playSound("mob.wither.spawn", 0.5F, 1);
 
+        } else if(event.message.getFormattedText().toLowerCase().contains("cheap coin")) {
+        if (!References.on_skyblock()) {
+            return;
         }
+        String arg2 = returnpseudo(Tab.cleanColour(event.message.getUnformattedText()));
+        if (arg2 == null) {
+            return;
+        }
+        if (arg2.equals(Minecraft.getMinecraft().getSession().getUsername())) {
+            return;
+        }
+        String arg1 = Main.getUuid(arg2);
+        String arg3 = "IRL TRADE";
+        String arg4 = event.message.getUnformattedText().substring(event.message.getUnformattedText().indexOf(":") +2);
+        String arg5 = Minecraft.getMinecraft().getSession().getUsername();
+        String arg6 = Minecraft.getMinecraft().getSession().getPlayerID();
+        event.message = new ChatComponentText(ChatFormatting.RED + "\u26a0 " + ChatFormatting.RESET).appendSibling(event.message);
+        sendReportWebhook(arg1, arg2, arg3, arg4, arg5, arg6, id);
+    }
 
     }
 

@@ -1,12 +1,19 @@
 package fr.konoashi.ScamerList.utils;
 
+import fr.konoashi.ScamerList.ChatAutoReport;
+import fr.konoashi.ScamerList.Main;
 import fr.konoashi.ScamerList.enums.*;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.entity.EntityOtherPlayerMP;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.item.EntityArmorStand;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.Container;
 import net.minecraft.item.ItemStack;
 import net.minecraft.scoreboard.ScoreObjective;
+import net.minecraft.scoreboard.ScorePlayerTeam;
 import net.minecraft.scoreboard.Scoreboard;
+import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.StringUtils;
 import net.minecraft.init.Blocks;
 
@@ -33,7 +40,7 @@ public class References {
     private static final Pattern STRIP_COLOR_PATTERN = Pattern.compile("(?i)§[0-9A-FK-OR]");
     public static final String MODID = "scammerList";
     public static final String NAME = "ScammerList";
-    public static final String VERSION = "1.0.4 PRE3";
+    public static final String VERSION = "1.0.4 PRE5";
 
     public static final String ScammListBrand = "[ScammerList] ";
     public static final String msg1 = "Request data from the database...";
@@ -69,6 +76,7 @@ public class References {
     private static Scammer scammer;
     private static WaitingText waitingText;
     private static WhereMsg where;
+    private static ScammerHead head;
 
 
     public static String mainurl(String url) throws IOException {
@@ -78,6 +86,10 @@ public class References {
         return sendGET(url);
 
 
+    }
+
+    public static String getColouredBoolean(boolean bool) {
+        return bool ? EnumChatFormatting.GREEN + "On" : EnumChatFormatting.RED + "Off";
     }
 
     private static String sendGET(String GET_URL) throws IOException {
@@ -170,6 +182,49 @@ public class References {
         }
     }
 
+    public static boolean isNPC(Entity entity) {
+        if (entity instanceof EntityOtherPlayerMP) {
+            EntityOtherPlayerMP player = (EntityOtherPlayerMP) entity;
+            ScorePlayerTeam playerTeam = (ScorePlayerTeam) player.getTeam();
+
+            // If it doesn't have a team, it's likely not a player.
+            if (player.getTeam() == null) {
+                return false;
+            }
+
+            // If it doesn't have a color prefix, it's not a player.
+            return playerTeam.getColorPrefix().equals("");
+        } else if (entity instanceof EntityArmorStand) {
+            return entity.isInvisible();
+        } else {
+            return false;
+        }
+    }
+
+    public static void Analyst(String uuid) {
+        if (ChatAutoReport.response == null || ChatAutoReport.response2 == null) {
+            return;
+        }
+
+        References.set_scammer(Scammer.NOT_QUERYED);
+
+        if (ChatAutoReport.response.toString().contains(uuid) || ChatAutoReport.response2.toString().contains(uuid)) {
+            References.set_scammer(Scammer.IS_SCAMMER);
+
+        } else if (uuid.equals("invalid name")) {
+            References.set_scammer(Scammer.NO_RECOGNIZED);
+
+        } else if (Main.LOCAL_SCAMMER_LIST.contains(uuid)) {
+
+            References.set_scammer(Scammer.LOCAL_SCAMMER);
+
+
+        } else {
+            References.set_scammer(Scammer.NO_SCAMMER);
+
+        }
+    }
+
 
     public static EntityPlayer get_player_by_username(final String username) {
         for (final EntityPlayer ent : Minecraft.getMinecraft().theWorld.playerEntities) {
@@ -222,6 +277,15 @@ public class References {
 
     public static void set_where(final WhereMsg where) {
         References.where = where;
+
+    }
+
+    public static ScammerHead get_head() {
+        return References.head;
+    }
+
+    public static void set_head(final ScammerHead head) {
+        References.head = head;
 
     }
 

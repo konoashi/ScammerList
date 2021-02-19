@@ -78,12 +78,14 @@ public class DirectQueryCommand extends CustomCommand {
             if (target == null) {
                 uuid = Main.getUuid(username);
                 if (!uuid.equals("invalid name")) {
-                    HttpURLConnectionExample.main("https://raw.githubusercontent.com/skyblockz/pricecheckbot/master/scammer.json", "https://scamlist.github.io/Scam.json", uuid);
+                    //HttpURLConnectionExample.main("https://raw.githubusercontent.com/skyblockz/pricecheckbot/master/scammer.json", "https://scamlist.github.io/Scam.json", uuid);
+                    References.Analyst(uuid);
                     if (References.get_scammer() == Scammer.IS_SCAMMER) {
-                        return EnumChatFormatting.DARK_RED + "\u274c " + References.ScammListBrand + "" + username + " is detected as a scammer on the database";
+                        return EnumChatFormatting.DARK_RED + "\u2718 " + References.ScammListBrand + "" + username + " is detected as a scammer on the database";
                     } else if (Main.LOCAL_SCAMMER_LIST.contains(uuid)) {
-                        return EnumChatFormatting.RED + "\u274c " + References.ScammListBrand + "" + username + " is detected as a local scammer";
-                    } else if (References.get_scammer() == Scammer.IS_SCAMMER || !Main.LOCAL_SCAMMER_LIST.contains(uuid)) {
+                        return EnumChatFormatting.RED + "\u2718 " + References.ScammListBrand + "" + username + " is detected as a local scammer";
+                    } else if (References.get_scammer() != Scammer.IS_SCAMMER || !Main.LOCAL_SCAMMER_LIST.contains(uuid)) {
+                        System.out.println(1);
                         return EnumChatFormatting.GREEN + "\u2714 " + References.ScammListBrand + "" + username + " isn't detected as a scammer";
                     }
                     return EnumChatFormatting.GOLD + "\u26a0 " + References.ScammListBrand + "You can't check yourself";
@@ -96,15 +98,21 @@ public class DirectQueryCommand extends CustomCommand {
                 return EnumChatFormatting.GOLD + References.ScammListBrand + "You can't check yourself";
             }
             username = target.getName();
-            uuid = target.getName().toString().replace("-", "");
+            uuid = target.getName().replace("-", "").toString();
         }
-        HttpURLConnectionExample.main("https://raw.githubusercontent.com/skyblockz/pricecheckbot/master/scammer.json", "https://scamlist.github.io/Scam.json", uuid);
+        //HttpURLConnectionExample.main("https://raw.githubusercontent.com/skyblockz/pricecheckbot/master/scammer.json", "https://scamlist.github.io/Scam.json", uuid);
+
+        System.out.println(Main.getUuid(uuid));
+
+        uuid = Main.getUuid(uuid);
+        References.Analyst(uuid);
 
         if (References.get_scammer() == Scammer.IS_SCAMMER) {
-            return EnumChatFormatting.RED + "\u274c " + References.ScammListBrand + "" + username + " is detected as a scammer on the database";
+            return EnumChatFormatting.DARK_RED + "\u2718 " + References.ScammListBrand + "" + username + " is detected as a scammer on the database";
         } else if (Main.LOCAL_SCAMMER_LIST.contains(uuid)) {
-            return EnumChatFormatting.RED + "\u274c " + References.ScammListBrand + "" + username + " is detected as a local scammer";
+            return EnumChatFormatting.RED + "\u2718 " + References.ScammListBrand + "" + username + " is detected as a local scammer";
         } else {
+            System.out.println(2);
             return EnumChatFormatting.GREEN + "\u2714 " + References.ScammListBrand + "" + username + " isn't detected as a scammer";
         }
     }
