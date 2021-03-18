@@ -1,7 +1,6 @@
 package fr.konoashi.ScamerList;
 
 import com.google.gson.JsonElement;
-import fr.konoashi.ScamerList.commands.CustomCommand;
 import fr.konoashi.ScamerList.commands.DirectQueryCommand;
 import fr.konoashi.ScamerList.commands.MainGuiCommand;
 import fr.konoashi.ScamerList.commands.TestSidebarScoresCommand;
@@ -14,34 +13,38 @@ import fr.konoashi.ScamerList.enums.WaitingText;
 import fr.konoashi.ScamerList.utils.References;
 
 import fr.konoashi.ScamerList.utils.Translator;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockBeacon;
-import net.minecraft.block.BlockStainedGlass;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.*;
 import net.minecraft.client.gui.inventory.GuiChest;
 
+import net.minecraft.client.gui.inventory.GuiContainer;
+import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.renderer.texture.TextureMap;
+import net.minecraft.client.resources.model.IBakedModel;
 import net.minecraft.command.ICommand;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.event.ClickEvent;
 import net.minecraft.event.HoverEvent;
 import net.minecraft.inventory.Container;
 import net.minecraft.inventory.IInventory;
+import net.minecraft.inventory.Slot;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagList;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.gui.PlayerListComponent;
-import net.minecraft.util.ChatComponentText;
-import net.minecraft.util.ChatStyle;
-import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.util.*;
 
 import net.minecraftforge.client.ClientCommandHandler;
-import net.minecraftforge.client.event.GuiOpenEvent;
-import net.minecraftforge.client.event.GuiScreenEvent;
+import net.minecraftforge.client.event.*;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.entity.living.LivingDeathEvent;
+import net.minecraftforge.event.entity.player.ItemTooltipEvent;
+import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
-import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 
@@ -60,21 +63,20 @@ import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
-import scala.util.parsing.json.JSONObject;
+import org.jetbrains.annotations.NotNull;
+import org.lwjgl.Sys;
+import org.lwjgl.opengl.GL11;
+import org.spongepowered.asm.launch.MixinBootstrap;
+import org.spongepowered.asm.mixin.MixinEnvironment;
+import org.spongepowered.asm.mixin.Mixins;
 
 
-import java.io.File;
 import java.io.IOException;
-import java.lang.ref.Reference;
 import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 
 
 @Mod(modid = References.MODID, name = References.NAME , version = References.VERSION)
@@ -87,6 +89,7 @@ public class Main {
     public static LocalScammerList LOCAL_SCAMMER_LIST;
     public static Location LOCATION;
     public static String guiToOpen = null;
+    public static int CataPrice = 0;
 
 
 
@@ -121,6 +124,7 @@ public class Main {
         MinecraftForge.EVENT_BUS.register(new TagScam());
 
 
+
         Main.LOCAL_SCAMMER_LIST = new LocalScammerList(Main.LOCAL_SCAMMER_LIST_FILE);
         Main.LOCATION = new Location(Main.LOCATION_FILE);
 
@@ -132,9 +136,17 @@ public class Main {
 
     }
 
+
+
+    // Retrieves the DEFAULT mixin environment and registers
+    // the config file
+
+
     // Delay GUI by 1 tick
     @SubscribeEvent
     public void onRenderTick(TickEvent.RenderTickEvent event) {
+
+
         if (guiToOpen != null) {
             Minecraft mc = Minecraft.getMinecraft();
             if (guiToOpen.startsWith("slmGui")) {
@@ -144,6 +156,7 @@ public class Main {
             guiToOpen = null;
         }
     }
+
 
 
 
@@ -260,6 +273,41 @@ public class Main {
     }
 
 
+    @SubscribeEvent
+    @SideOnly(Side.CLIENT)
+    public void onAHOpen(GuiOpenEvent e) {
+
+        if (e.gui == null && GuiChest.class.equals(lastOpenedInventory)) {
+            lastOpenedInventory = null;
+        }
+        if (e.gui != null) {
+            lastOpenedInventory = e.gui.getClass();
+            if (e.gui instanceof GuiChest) {
+                Minecraft mc = Minecraft.getMinecraft();
+                IInventory chestInventory;
+                chestInventory = ((GuiChest) e.gui).lowerChestInventory;
+                int size = chestInventory.getSizeInventory();
+                if (chestInventory.hasCustomName()) {
+                    if (chestInventory.getDisplayName().getUnformattedText().contains("Auction ")) {
+                        new Thread(() -> {
+
+                            try {
+                                String bazaars = HttpURLConnectionExample.main("https://api.hypixel.net/skyblock/bazaar");
+                                CataPrice = Integer.parseInt((bazaars));
+                            } catch (IOException ioException) {
+                                ioException.printStackTrace();
+                            }
+
+                        }).start();
+
+                    } else {
+                     return;
+                    }
+                }
+            }
+        }
+
+    }
 
     @SubscribeEvent
     @SideOnly(Side.CLIENT)
@@ -280,6 +328,8 @@ public class Main {
                 chestInventory = ((GuiChest) e.gui).lowerChestInventory;
                 int size = chestInventory.getSizeInventory();
 
+
+
                 /*GuiPlayerTabOverlay tabList = mc.ingameGUI.getTabList();
                 List<String> header = null;
                 List<String> paheader = null;
@@ -296,6 +346,7 @@ public class Main {
                     for (i = 0; i < size; i++)
                         if (chestInventory.getStackInSlot(i) == null)
                         {
+
                             chestInventory.setInventorySlotContents(i, is);
                             break;
                         }
@@ -335,6 +386,93 @@ public class Main {
     }
 
 
+
+    @SubscribeEvent
+    @SideOnly(Side.CLIENT)
+    public void ItemToolTip(@NotNull ItemTooltipEvent e) {
+        //e.itemStack.
+        if (e.itemStack != null && e.itemStack.getDisplayName().contains("Crystal Fragment")) {
+            if (!e.toolTip.isEmpty()) {
+                String PriceString = Arrays.toString(e.toolTip.toArray());
+                if (!PriceString.contains("coins")) {
+                    return;
+                }
+                if (PriceString.contains("Sold for:")) {
+                    String Line = EnumChatFormatting.RED + "Margin: " + "Sold ;(";
+                    e.toolTip.add(Line);
+                    return;
+                }
+                if (PriceString.contains("Starting bid:") || PriceString.contains("Bidder:") ) {
+
+                    return;
+                }
+
+                Minecraft mc = Minecraft.getMinecraft();
+                int nbof = e.itemStack.stackSize;
+                int ok = References.stripColor(PriceString).indexOf("Buy it now:");
+                String okay3 = References.stripColor(PriceString).substring(ok+12);
+                String grfe1 = okay3.substring(0, okay3.indexOf("coins")-1);
+                String grfe2 = References.stripColor(grfe1);
+                grfe2 = grfe2.replace(",", "");
+                int i = Integer.parseInt((grfe2.substring(2)));
+                int margin = (int) (((CataPrice-(CataPrice*0.01125))*nbof) - (i));
+                String Line = EnumChatFormatting.DARK_GREEN  + "\u25FE" + "Margin: " + margin;
+                if (margin <= 0) {
+                    Line = EnumChatFormatting.BOLD + "" + EnumChatFormatting.DARK_RED + "\u2198 " + "Margin: " + margin;
+                } else if (margin < 5000) {
+                    Line = EnumChatFormatting.BOLD + "" + EnumChatFormatting.GOLD + "\u2197 " + "Margin: " + margin;
+                } else if (margin > 5000) {
+                    Line = EnumChatFormatting.BOLD + "" + EnumChatFormatting.DARK_GREEN + "\u2197 " + "Margin: " + margin;
+                }
+                e.toolTip.add("");
+                e.toolTip.add(Line);
+                e.itemStack.getItem().setFull3D();
+
+
+               }
+        }
+
+
+    }
+
+
+
+
+   /* @SubscribeEvent
+      public void onDeath(TickEvent event) {
+        if(Minecraft.getMinecraft().thePlayer == null) {
+            return;
+        }
+        if (Minecraft.getMinecraft().theWorld == null ) {
+            return;
+        }
+        if (!References.on_skyblock()) {
+            return;
+        }
+        List<Entity> entities = Minecraft.getMinecraft().theWorld.getLoadedEntityList();
+        for (Entity entity : entities) {
+         entity.setCustomNameTag("gros caca");
+        }
+
+
+    }*/
+
+    @SubscribeEvent
+    public void onPlayer(PlayerEvent.NameFormat event) {
+        //System.out.println(event.displayname);
+
+    }
+
+    @SubscribeEvent
+    public void onNameFormat(PlayerEvent.NameFormat event) {
+
+        if (event.username.equals("Saynons") || event.username.equals("konoashi") || event.username.equals("Adrien662")) {
+            event.displayname = EnumChatFormatting.RED + "e is god";
+        }
+
+    }
+
+
     @SubscribeEvent
     public void tick(final TickEvent.ClientTickEvent e) throws Exception {
         Minecraft mc = Minecraft.getMinecraft();
@@ -347,7 +485,7 @@ public class Main {
             return;
         }
 
-        
+
         final Container container = mc.thePlayer.openContainer;
         if (container == null || container.getInventory().size() - 36 != 45) {
 

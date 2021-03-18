@@ -38,9 +38,9 @@ public class References {
 
 
     private static final Pattern STRIP_COLOR_PATTERN = Pattern.compile("(?i)§[0-9A-FK-OR]");
-    public static final String MODID = "scammerList";
+    public static final String MODID = "scammerlist";
     public static final String NAME = "ScammerList";
-    public static final String VERSION = "1.0.4 PRE5";
+    public static final String VERSION = "1.0.4 PRE7";
 
     public static final String ScammListBrand = "[ScammerList] ";
     public static final String msg1 = "Request data from the database...";
@@ -86,6 +86,14 @@ public class References {
         return sendGET(url);
 
 
+    }
+
+    public static int to32BitColor(int a, int r, int g, int b)
+    {
+        a = a << 24;
+        r = r << 16;
+        g = g << 8;
+        return a | r | g | b;
     }
 
     public static String getColouredBoolean(boolean bool) {

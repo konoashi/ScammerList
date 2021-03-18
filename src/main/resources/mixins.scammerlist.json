@@ -1,0 +1,13 @@
+{
+  "required": true,
+  "package": "fr.konoashi.ScamerList.mixins",
+  "compatibilityLevel": "JAVA_8",
+  "refmap": "mixins.scammerlist.refmap.json",
+  "mixins": [
+    "GuiContainerColor"
+  ],
+  "minVersion": "0.7.11",
+  "client": [
+    "GuiContainerColor"
+  ]
+}

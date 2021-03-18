@@ -51,7 +51,7 @@ public class MainGui extends GuiScreen {
         float y = (float) height / 1080;
         GlStateManager.scale(x * 7.5, y * 4, 0);
         mc.getTextureManager().bindTexture(texture);
-        //drawTexturedModalRect(0, 0, 0, 0, 1920, 1080);
+        drawTexturedModalRect(0, 0, 0, 0, 1920, 1080);
         GlStateManager.popMatrix();
         super.drawScreen(mouseX, mouseY, partialTicks);
 
