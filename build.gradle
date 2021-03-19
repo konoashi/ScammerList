@@ -20,7 +20,7 @@ buildscript {
 
         maven {
             name = 'sponge'
-            url = 'https://repo.spongepowered.org/repository/maven-public/'
+            url = 'https://repo.spongepowered.org/maven'
         }
 
         maven {
@@ -32,39 +32,15 @@ buildscript {
         classpath 'net.minecraftforge.gradle:ForgeGradle:2.1-SNAPSHOT'
         classpath 'org.spongepowered:mixingradle:0.6-SNAPSHOT'
         classpath 'org.spongepowered:mixin:0.7.11-SNAPSHOT'
-        classpath "gradle.plugin.com.matthewprenger:CurseGradle:1.4.0"
-
-
-        classpath 'com.netflix.nebula:gradle-extra-configurations-plugin:3.0.3'
-        classpath "gradle.plugin.com.github.spotbugs.snom:spotbugs-gradle-plugin:4.5.0"
-        classpath 'biz.aQute.bnd:biz.aQute.bnd.gradle:5.1.2'
-
-
-
-        // Scala plugins
-        classpath "com.adtran:scala-multiversion-plugin:1.0.36"
-        classpath "com.diffplug.spotless:spotless-plugin-gradle:3.27.1"
-
-        // Test logging plugin
-        classpath 'com.adarshr:gradle-test-logger-plugin:2.1.0'
-        classpath 'com.squareup.okhttp3:okhttp:4.9.0'
-        classpath 'com.squareup.okio:okio:2.8.0'
-        classpath 'com.jagrosh:DiscordIPC:0.4'
-
-
-
-
-
-
-
-
-
+        classpath 'com.github.jengelman.gradle.plugins:shadow:2.0.4'
 
 
     }
 }
 apply plugin: 'net.minecraftforge.gradle.forge'
 apply plugin: 'org.spongepowered.mixin'
+apply plugin: 'com.github.johnrengelman.shadow'
+
 
 
 
@@ -74,7 +50,7 @@ plugins {
     id "net.minecraftforge.gradle.forge" version "2.0.2"
 }
 */
-version = "1.0.4 PRE7"
+version = "1.0.4 PRE9"
 group= "fr.konoashi.ScamerList" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = "ScammerList"
 
@@ -111,18 +87,23 @@ dependencies {
 
 }
 
+
 repositories {
-    flatDir {
-        dirs 'libs'
+    mavenCentral()
+    maven {
+        name = 'sponge'
+        url = 'https://repo.spongepowered.org/maven'
     }
 }
 
 dependencies {
 
-    compile 'org.spongepowered:mixin:0.7.11'
-    provided 'com.jagrosh:DiscordIPC:0.4'
-    compile 'com.jagrosh:DiscordIPC:0.4'
+
+
+    compile 'org.spongepowered:mixin:0.7.11-SNAPSHOT'
+
 }
+
 
 compileJava {
     sourceCompatibility = targetCompatibility = 1.8
@@ -159,7 +140,11 @@ sourceSets {
     }
 }
 
+
+
 jar {
+
+
     manifest {
         attributes 'FMLAT': 'scammerList_at.cfg'
         attributes "MixinConfigs": "mixins.scammerlist.json"
@@ -173,9 +158,36 @@ jar {
     )
 }
 
+
+
+
+
+
+
 mixin {
     add sourceSets.main, 'mixins.scammerlist.refmap.json'
 }
+
+task fatJar(type: Jar) {
+    manifest.from jar.manifest
+    manifest {
+        attributes "Main-Class": "fr.konoashi.ScamerList.Main"
+    }
+    classifier = '-mixin'
+    from {
+
+        configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
+    } {
+        exclude "META-INF/*.SF"
+        exclude "META-INF/*.DSA"
+        exclude "META-INF/*.RSA"
+    }
+    with jar
+}
+
+
+sourceSets { main { output.resourcesDir = output.classesDir } }
+
 
 
 

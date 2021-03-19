@@ -40,7 +40,7 @@ public class References {
     private static final Pattern STRIP_COLOR_PATTERN = Pattern.compile("(?i)§[0-9A-FK-OR]");
     public static final String MODID = "scammerlist";
     public static final String NAME = "ScammerList";
-    public static final String VERSION = "1.0.4 PRE7";
+    public static final String VERSION = "1.0.4 PRE9";
 
     public static final String ScammListBrand = "[ScammerList] ";
     public static final String msg1 = "Request data from the database...";

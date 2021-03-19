@@ -3,13 +3,18 @@ package fr.konoashi.ScamerList.mixins;
 
 import fr.konoashi.ScamerList.utils.References;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.inventory.GuiChest;
 import net.minecraft.client.gui.inventory.GuiContainer;
+import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.inventory.Slot;
+import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.util.ResourceLocation;
+import org.lwjgl.opengl.GL11;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -20,7 +25,13 @@ import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 
 @Mixin(GuiContainer.class)
 public abstract class GuiContainerColor extends GuiScreen {
-    @Shadow private Slot theSlot;
+
+    @Shadow protected abstract void drawSlot(Slot p_drawSlot_1_);
+
+    @Shadow protected abstract void drawItemStack(ItemStack p_drawItemStack_1_, int p_drawItemStack_2_, int p_drawItemStack_3_, String p_drawItemStack_4_);
+
+    @Shadow protected abstract void drawGuiContainerBackgroundLayer(float v, int i, int i1);
+
     private final GuiContainer that = (GuiContainer) (Object) this;
 
 
@@ -82,11 +93,8 @@ public abstract class GuiContainerColor extends GuiScreen {
                             int i = Integer.parseInt(ToolTip.substring(ToolTip.indexOf("Margin:")+8, ToolTip.length()-1).replaceAll(" ", ""));
 
                             if (i<0) {
-                                int color = References.to32BitColor(190, 255, 45, 45);
-                                this.zLevel = 260.0F;
-                                this.drawGradientRect(slotLeft, slotTop, slotRight, slotBottom, color, color);
-                                this.zLevel = 0.0F;
-                                break;
+
+
 
                             } else if (i>5000) {
                                 int color = References.to32BitColor(190, 45, 255, 45);
@@ -110,6 +118,8 @@ public abstract class GuiContainerColor extends GuiScreen {
             }
         }
     }
+
+
 
     private void drawCurrentSelectedPet(Slot slot)
     {

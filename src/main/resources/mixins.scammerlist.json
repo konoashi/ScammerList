@@ -4,10 +4,10 @@
   "compatibilityLevel": "JAVA_8",
   "refmap": "mixins.scammerlist.refmap.json",
   "mixins": [
-    "GuiContainerColor"
+    "RenderItemMinix"
   ],
   "minVersion": "0.7.11",
   "client": [
-    "GuiContainerColor"
+    "RenderItemMinix"
   ]
 }

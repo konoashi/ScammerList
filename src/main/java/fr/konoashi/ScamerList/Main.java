@@ -63,7 +63,6 @@ import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
-import org.jetbrains.annotations.NotNull;
 import org.lwjgl.Sys;
 import org.lwjgl.opengl.GL11;
 import org.spongepowered.asm.launch.MixinBootstrap;
@@ -387,9 +386,10 @@ public class Main {
 
 
 
+
     @SubscribeEvent
     @SideOnly(Side.CLIENT)
-    public void ItemToolTip(@NotNull ItemTooltipEvent e) {
+    public void ItemToolTip(ItemTooltipEvent e) {
         //e.itemStack.
         if (e.itemStack != null && e.itemStack.getDisplayName().contains("Crystal Fragment")) {
             if (!e.toolTip.isEmpty()) {
@@ -434,6 +434,8 @@ public class Main {
 
 
     }
+
+
 
 
 

@@ -2,15 +2,22 @@ package fr.konoashi.ScamerList;
 
 import net.minecraftforge.common.ForgeVersion;
 import net.minecraftforge.fml.relauncher.IFMLLoadingPlugin;
+import org.objectweb.asm.tree.ClassNode;
 import org.spongepowered.asm.launch.MixinBootstrap;
 import org.spongepowered.asm.mixin.Mixins;
+import org.spongepowered.asm.mixin.extensibility.IMixinConfigPlugin;
+import org.spongepowered.asm.mixin.extensibility.IMixinInfo;
 
 import javax.annotation.Nullable;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @IFMLLoadingPlugin.MCVersion(ForgeVersion.mcVersion)
-public class PlugLoad implements IFMLLoadingPlugin
+public class PlugLoad implements IFMLLoadingPlugin, IMixinConfigPlugin
 {
+
+
     public PlugLoad()
     {
         MixinBootstrap.init();
@@ -85,4 +92,41 @@ public class PlugLoad implements IFMLLoadingPlugin
     {
         return null;
     }
+
+    @Override
+    public void onLoad(String mixinPackage) {
+
+    }
+
+    @Override
+    public String getRefMapperConfig() {
+        return null;
+    }
+
+    @Override
+    public boolean shouldApplyMixin(String targetClassName, String mixinClassName) {
+        return false;
+    }
+
+    @Override
+    public void acceptTargets(Set<String> myTargets, Set<String> otherTargets) {
+
+    }
+
+    @Override
+    public List<String> getMixins() {
+        return null;
+    }
+
+    @Override
+    public void preApply(String targetClassName, org.spongepowered.asm.lib.tree.ClassNode targetClass, String mixinClassName, IMixinInfo mixinInfo) {
+
+    }
+
+    @Override
+    public void postApply(String targetClassName, org.spongepowered.asm.lib.tree.ClassNode targetClass, String mixinClassName, IMixinInfo mixinInfo) {
+
+    }
+
+
 }
